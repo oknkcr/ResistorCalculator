@@ -7,7 +7,7 @@ Standart Resistor Calculator Tool
 
 ## How to Use
 
-Place the **index.html**, **styles.css**, and **script.js** files in the same folder, and then open the **index.html** file in a web browser.
+just open **ResistorCalculator.html** in your browser.
 
 ## Project status
 
