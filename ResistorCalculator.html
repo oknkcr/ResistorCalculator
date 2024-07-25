@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standart Direnç Kombinasyonları</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        header {
+            text-align: center;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            color: #4CAF50;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #results {
+            margin-top: 20px;
+            background-color: #e0f7fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        #results h2 {
+            color: #00796b;
+        }
+
+        #results h3 {
+            color: #00695c;
+        }
+
+        #results ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #results li {
+            background-color: #c8e6c9;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Standart Direnç Kombinasyonları</h1>
+        </header>
+        <main>
+            <form id="resistor-form">
+                <div class="form-group">
+                    <label for="nonstandard-resistor">Direnç Değeri (Ω)</label>
+                    <input type="number" id="nonstandard-resistor" name="nonstandard-resistor" required>
+                </div>
+                <div class="form-group">
+                    <label for="tolerance">Tolerans (%)</label>
+                    <select id="tolerance" name="tolerance" required>
+                        <option value="1">1%</option>
+                        <option value="5" selected>5%</option>
+                        <option value="10">10%</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit">Hesapla</button>
+                </div>
+            </form>
+            <div id="results" class="hidden">
+                <h2>Sonuçlar</h2>
+                <h3>Seri Bağlantılar</h3>
+                <ul id="series-combinations"></ul>
+                <h3>Paralel Bağlantılar</h3>
+                <ul id="parallel-combinations"></ul>
+            </div>
+        </main>
+    </div>
+    <script>
+        document.getElementById('resistor-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const standardResistors = [
+                1, 1.2, 1.5, 1.8, 2.2, 2.7, 3.3, 3.9, 4.7, 5.6, 6.8, 8.2,
+                10, 12, 15, 18, 22, 27, 33, 39, 47, 56, 68, 82,
+                100, 120, 150, 180, 220, 270, 330, 390, 470, 560, 680, 820,
+                1000, 1200, 1500, 1800, 2200, 2700, 3300, 3900, 4700, 5600, 6800, 8200,
+                10000, 12000, 15000, 18000, 22000, 27000, 33000, 39000, 47000, 56000, 68000, 82000,
+                100000, 120000, 150000, 180000, 220000, 270000, 330000, 390000, 470000, 560000, 680000, 820000,
+                1000000
+            ];
+
+            const nonStandardResistor = parseFloat(document.getElementById('nonstandard-resistor').value);
+            const tolerance = parseFloat(document.getElementById('tolerance').value) / 100;
+
+            const lowerBound = nonStandardResistor * (1 - tolerance);
+            const upperBound = nonStandardResistor * (1 + tolerance);
+
+            const seriesCombinations = [];
+            const parallelCombinations = [];
+
+            // Find series combinations
+            for (let i = 0; i < standardResistors.length; i++) {
+                for (let j = i; j < standardResistors.length; j++) {
+                    const seriesValue = standardResistors[i] + standardResistors[j];
+                    if (seriesValue >= lowerBound && seriesValue <= upperBound) {
+                        const deviation = ((seriesValue - nonStandardResistor) / nonStandardResistor) * 100;
+                        seriesCombinations.push({
+                            value: `${standardResistors[i]}Ω + ${standardResistors[j]}Ω = ${seriesValue.toFixed(2)}Ω`,
+                            deviation: deviation.toFixed(2) + '%'
+                        });
+                    }
+                }
+            }
+
+            // Find parallel combinations
+            for (let i = 0; i < standardResistors.length; i++) {
+                for (let j = i; j < standardResistors.length; j++) {
+                    const parallelValue = 1 / (1 / standardResistors[i] + 1 / standardResistors[j]);
+                    if (parallelValue >= lowerBound && parallelValue <= upperBound) {
+                        const deviation = ((parallelValue - nonStandardResistor) / nonStandardResistor) * 100;
+                        parallelCombinations.push({
+                            value: `${standardResistors[i]}Ω || ${standardResistors[j]}Ω = ${parallelValue.toFixed(2)}Ω`,
+                            deviation: deviation.toFixed(2) + '%'
+                        });
+                    }
+                }
+            }
+
+            // Display results
+            document.getElementById('series-combinations').innerHTML = seriesCombinations.map(combo => `<li>${combo.value} <span>(${combo.deviation})</span></li>`).join('');
+            document.getElementById('parallel-combinations').innerHTML = parallelCombinations.map(combo => `<li>${combo.value} <span>(${combo.deviation})</span></li>`).join('');
+
+            document.getElementById('results').classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
